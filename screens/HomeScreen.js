@@ -10,14 +10,14 @@ export default function HomeScreen() {
   const [wordListLearned, setWordListLearned] = useState([]);
   const [wordListUndecided, setWordListUndecided] = useState([]);
   const [wordListNotLearned, setWordListNotLearned] = useState([]);
-
-  let db;
+  const [db, setDb] = useState(null);
 
   useEffect(() => {
     async function setup() {
-      db = await SQLite.openDatabaseAsync("wordsdb");
+      const database = await SQLite.openDatabaseAsync("wordsdb");
+      setDb(database);
 
-      await db.execAsync(`
+      await database.execAsync(`
         CREATE TABLE IF NOT EXISTS words (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           englishWord TEXT,
@@ -30,44 +30,66 @@ export default function HomeScreen() {
         );
       `);
 
-      updatebd();
+      updatebd(database);
     }
 
     setup();
   }, []);
 
-  async function updatebd() {
-    const dbAtualizado = await db.getAllAsync("SELECT * FROM words");
+  async function updatebd(database) {
+    const dbAtualizado = await database.getAllAsync("SELECT * FROM words");
     if (dbAtualizado.length === 0) {
       for (let i = 0; i < data.length; i++) {
-        let word = data[i];
-        await db.runAsync(
+        let wordItem = data[i];
+        await database.runAsync(
           "INSERT INTO words (englishWord, translatedWord, sentence, translatedSentence, ipa, definition, status) VALUES (?, ?, ?, ?, ?, ?, ?);",
           [
-            word.englishWord,
-            word.translatedWord,
-            word.sentence,
-            word.translatedSentence,
-            word.ipa,
-            word.definition,
-            word.status,
+            wordItem.englishWord,
+            wordItem.translatedWord,
+            wordItem.sentence,
+            wordItem.translatedSentence,
+            wordItem.ipa,
+            wordItem.definition,
+            wordItem.status,
           ]
         );
       }
-      const updatedWords = await db.getAllAsync("SELECT * FROM words");
-      setWordList(updatedWords);
-    } else {
-      setWordList(dbAtualizado);
     }
-    createFilteredList();
+
+    const updatedWords = await database.getAllAsync("SELECT * FROM words");
+    setWordList(updatedWords);
+    createFilteredList(updatedWords);
   }
 
   async function updateStatus(status) {
-    db = await SQLite.openDatabaseAsync("wordsdb");
+    if (!db || wordList.length === 0) return; // Ensure db is initialized and list is not empty
+
     const word = wordList[currentIndex];
     await db.runAsync("UPDATE words SET status = ? WHERE id = ?", [status, word.id]);
-    updatebd();
-    console.log(word.status);
+    const updatedWords = await db.getAllAsync("SELECT * FROM words");
+    setWordList(updatedWords);
+    createFilteredList(updatedWords);
+
+    // Update currentIndex to ensure it stays within bounds of the new list
+    setCurrentIndex((prevIndex) => {
+      // Find the new index in the filtered list
+      const notLearned = updatedWords.filter((word) => word.status === 0);
+      const newIndex = notLearned.findIndex((word) => word.id === wordList[prevIndex]?.id);
+      return newIndex !== -1 ? newIndex : 0;
+    });
+  }
+
+  function createFilteredList(words) {
+    const learned = words.filter((word) => word.status === 2);
+    const undecided = words.filter((word) => word.status === 1);
+    const notLearned = words.filter((word) => word.status === 0);
+
+    setWordListLearned(learned);
+    setWordListUndecided(undecided);
+    setWordListNotLearned(notLearned);
+
+    // Ensure currentIndex is valid for the notLearned list
+    setCurrentIndex((prevIndex) => Math.min(prevIndex, notLearned.length - 1));
   }
 
   if (!wordListNotLearned || wordListNotLearned.length === 0) {
@@ -81,40 +103,31 @@ export default function HomeScreen() {
   }
 
   const nextWord = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % wordList.length);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % wordListNotLearned.length);
   };
 
   const previousWord = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + wordList.length) % wordList.length);
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + wordListNotLearned.length) % wordListNotLearned.length);
   };
 
   function learned() {
     updateStatus(2);
-    console.log("aprendi");
   }
+
   function undecided() {
     updateStatus(1);
-    console.log("indeciso");
   }
+
   function notLearned() {
     updateStatus(0);
-    console.log("nao sei");
   }
 
-  function createFilteredList() {
-    const learned = wordList.filter((word) => word.status === 2);
-    const undecided = wordList.filter((word) => word.status === 1);
-    const notLearned = wordList.filter((word) => word.status === 0);
-
-    setWordListLearned(learned);
-    setWordListUndecided(undecided);
-    setWordListNotLearned(notLearned);
-  }
+  const word = wordListNotLearned[currentIndex];
 
   return (
     <View style={styles.Container}>
       <View style={styles.contents}>
-        <Pressable onPress={() => console.log(wordListNotLearned[0].englishWord)}>
+        <Pressable onPress={() => console.log(wordListNotLearned[currentIndex])}>
           <Text>0</Text>
         </Pressable>
         <View style={styles.wordContainer}>
@@ -130,11 +143,11 @@ export default function HomeScreen() {
             <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{">"}</Text>
           </Pressable>
         </View>
-        <Text style={styles.ipa}>{wordListNotLearned[currentIndex].ipa}</Text>
-        <Text style={styles.translatedWord}>{wordListNotLearned[currentIndex].translatedWord}</Text>
-        <Text style={styles.example}>{wordListNotLearned[currentIndex].sentence}</Text>
-        <Text style={styles.translationExample}>{wordListNotLearned[currentIndex].translatedSentence}</Text>
-        <Text style={styles.definition}>{wordListNotLearned[currentIndex].definition}</Text>
+        <Text style={styles.ipa}>{word.ipa}</Text>
+        <Text style={styles.translatedWord}>{word.translatedWord}</Text>
+        <Text style={styles.example}>{word.sentence}</Text>
+        <Text style={styles.translationExample}>{word.translatedSentence}</Text>
+        <Text style={styles.definition}>{word.definition}</Text>
       </View>
       <View style={styles.contentButtons}>
         <Pressable onPress={notLearned} style={styles.buttonStatus}>
@@ -200,7 +213,6 @@ const styles = StyleSheet.create({
     color: "#b1c4fc",
     fontSize: 20,
   },
-
   definition: {
     color: "#ffffff",
     marginTop: 30,
