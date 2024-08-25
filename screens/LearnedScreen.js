@@ -1,4 +1,7 @@
 import { View, Text } from "react-native";
+import * as HomeScreen from "./HomeScreen";
+
+console.log();
 
 export default function LearnedScreen() {
   return (

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as SQLite from "expo-sqlite";
 import data from "../assets/word_data.json";
+import { useNavigation } from "@react-navigation/native";
 
 export default function HomeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -10,7 +11,9 @@ export default function HomeScreen() {
   const [wordListLearned, setWordListLearned] = useState([]);
   const [wordListUndecided, setWordListUndecided] = useState([]);
   const [wordListNotLearned, setWordListNotLearned] = useState([]);
-  const [teste, setTeste] = [0];
+
+  const navigation = useNavigation();
+
   let db;
 
   useEffect(() => {
@@ -37,9 +40,13 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    createFilteredList();
-    const x = () => setTeste(wordListNotLearned[currentIndex]);
-  }, [wordList, wordListNotLearned]);
+    const learned = wordList.filter((word) => word.status === 2);
+    const undecided = wordList.filter((word) => word.status === 1);
+    const notLearned = wordList.filter((word) => word.status === 0);
+    setWordListLearned(learned);
+    setWordListUndecided(undecided);
+    setWordListNotLearned(notLearned);
+  }, [wordList]);
 
   async function updatebd() {
     const dbAtualizado = await db.getAllAsync("SELECT * FROM words");
@@ -68,12 +75,15 @@ export default function HomeScreen() {
 
   async function updateStatus(status) {
     db = await SQLite.openDatabaseAsync("wordsdb");
-    await db.runAsync("UPDATE words SET status = ? WHERE id = ?", [status, word.id]);
+    await db.runAsync("UPDATE words SET status = ? WHERE englishWord = ?", [
+      status,
+      wordListNotLearned[currentIndex].englishWord,
+    ]);
     const updatedWords = await db.getAllAsync("SELECT * FROM words");
     setWordList(updatedWords);
   }
 
-  if (!wordListNotLearned || wordListNotLearned.length === 0) {
+  if (!wordList || wordList.length === 0) {
     return (
       <ActivityIndicator
         style={{ alignItems: "center", justifyContent: "center", flex: 1, backgroundColor: "#2c2f38" }}
@@ -104,21 +114,12 @@ export default function HomeScreen() {
     console.log("nao sei");
   }
 
-  async function createFilteredList() {
-    const learned = wordList.filter((word) => word.status === 2);
-    const undecided = wordList.filter((word) => word.status === 1);
-    const notLearned = wordList.filter((word) => word.status === 0);
-
-    setWordListLearned(learned);
-    setWordListUndecided(undecided);
-    setWordListNotLearned(notLearned);
-  }
-  const word = wordList[currentIndex];
+  const word = wordListNotLearned[currentIndex];
 
   return (
     <View style={styles.Container}>
       <View style={styles.contents}>
-        <Pressable onPress={() => console.log(wordListNotLearned[currentIndex].englishWord)}>
+        <Pressable onPress={() => console.log(wordListLearned)}>
           <Text>learned</Text>
         </Pressable>
         <Pressable onPress={() => console.log(word.status)}>
@@ -132,16 +133,16 @@ export default function HomeScreen() {
           >
             <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{"<"}</Text>
           </Pressable>
-          <Text style={styles.englishWord}>{teste.englishWord}</Text>
+          <Text style={styles.englishWord}>{word.englishWord}</Text>
           <Pressable style={styles.buttonChangeWord} onPress={nextWord}>
             <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{">"}</Text>
           </Pressable>
         </View>
-        <Text style={styles.ipa}>{teste.ipa}</Text>
-        <Text style={styles.translatedWord}>{teste.translatedWord}</Text>
-        <Text style={styles.example}>{teste.sentence}</Text>
-        <Text style={styles.translationExample}>{teste.translatedSentence}</Text>
-        <Text style={styles.definition}>{teste.definition}</Text>
+        <Text style={styles.ipa}>{word.ipa}</Text>
+        <Text style={styles.translatedWord}>{word.translatedWord}</Text>
+        <Text style={styles.example}>{word.sentence}</Text>
+        <Text style={styles.translationExample}>{word.translatedSentence}</Text>
+        <Text style={styles.definition}>{word.definition}</Text>
       </View>
       <View style={styles.contentButtons}>
         <Pressable onPress={notLearned} style={styles.buttonStatus}>
