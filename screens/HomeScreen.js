@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as SQLite from "expo-sqlite";
 import data from "../assets/word_data.json";
-import { useNavigation } from "@react-navigation/native";
+import { CounterContext } from "../contex/CounterContex";
 
 export default function HomeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -12,7 +12,7 @@ export default function HomeScreen() {
   const [wordListUndecided, setWordListUndecided] = useState([]);
   const [wordListNotLearned, setWordListNotLearned] = useState([]);
 
-  const navigation = useNavigation();
+  const { funcTeste } = useContext(CounterContext);
 
   let db;
 
@@ -46,6 +46,8 @@ export default function HomeScreen() {
     setWordListLearned(learned);
     setWordListUndecided(undecided);
     setWordListNotLearned(notLearned);
+
+    funcTeste(learned);
   }, [wordList]);
 
   async function updatebd() {
@@ -83,7 +85,7 @@ export default function HomeScreen() {
     setWordList(updatedWords);
   }
 
-  if (!wordList || wordList.length === 0) {
+  if (!wordListNotLearned || wordListNotLearned.length === 0) {
     return (
       <ActivityIndicator
         style={{ alignItems: "center", justifyContent: "center", flex: 1, backgroundColor: "#2c2f38" }}

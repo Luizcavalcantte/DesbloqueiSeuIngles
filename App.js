@@ -1,11 +1,14 @@
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import DrawerNavigator from "./navigation/DrawerNavigator";
+import { CounterProvider } from "./contex/CounterContex";
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <DrawerNavigator />
-    </NavigationContainer>
+    <CounterProvider>
+      <NavigationContainer>
+        <DrawerNavigator />
+      </NavigationContainer>
+    </CounterProvider>
   );
 }
