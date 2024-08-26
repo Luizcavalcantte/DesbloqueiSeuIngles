@@ -12,10 +12,10 @@ export default function DrawerNavigator() {
       screenOptions={{
         headerStyle: { backgroundColor: "#2c2f38" },
         headerTintColor: "#ffffff",
-        drawerStyle: { backgroundColor: "#2c2f38" }, // Cor de fundo do menu lateral
-        drawerActiveTintColor: "#ffffff", // Cor do texto do item ativo no menu
-        drawerInactiveTintColor: "#ffffff", // Cor do texto do item inativo no menu
-        drawerActiveBackgroundColor: "#283d9a", // Cor de fundo do item ativo no menu
+        drawerStyle: { backgroundColor: "#2c2f38" },
+        drawerActiveTintColor: "#ffffff",
+        drawerInactiveTintColor: "#ffffff",
+        drawerActiveBackgroundColor: "#283d9a",
       }}
     >
       <Drawer.Screen name="Desbloquei Seu Ingles" component={HomeScreen} />
