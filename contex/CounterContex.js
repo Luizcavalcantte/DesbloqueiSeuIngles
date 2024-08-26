@@ -3,11 +3,19 @@ import React, { createContext, useState } from "react";
 export const CounterContext = createContext();
 
 export const CounterProvider = ({ children }) => {
-  const [bdTeste, setbdTeste] = useState([]);
+  const [wordListLearned, setWordListLearned] = useState([]);
+  const [wordListUndecided, setWordListUndecided] = useState([]);
+  const [wordListNotLearned, setWordListNotLearned] = useState([]);
 
-  function funcTeste(x) {
-    setbdTeste(x);
+  function dbContext(x, y, z) {
+    setWordListLearned(x);
+    setWordListUndecided(y);
+    setWordListNotLearned(z);
   }
 
-  return <CounterContext.Provider value={{ bdTeste, funcTeste }}>{children}</CounterContext.Provider>;
+  return (
+    <CounterContext.Provider value={{ wordListLearned, wordListUndecided, wordListNotLearned, dbContext }}>
+      {children}
+    </CounterContext.Provider>
+  );
 };

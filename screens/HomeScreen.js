@@ -12,7 +12,7 @@ export default function HomeScreen() {
   const [wordListUndecided, setWordListUndecided] = useState([]);
   const [wordListNotLearned, setWordListNotLearned] = useState([]);
 
-  const { funcTeste } = useContext(CounterContext);
+  const { dbContext } = useContext(CounterContext);
 
   let db;
 
@@ -47,7 +47,7 @@ export default function HomeScreen() {
     setWordListUndecided(undecided);
     setWordListNotLearned(notLearned);
 
-    funcTeste(learned);
+    dbContext(learned, undecided, notLearned);
   }, [wordList]);
 
   async function updatebd() {
