@@ -5,6 +5,8 @@ import { CounterContext } from "../contex/CounterContex";
 export default function UndecidedScreen() {
   const { wordListLearned } = useContext(CounterContext);
 
+  const reversedList = [...wordListLearned].reverse();
+
   const renderItem = ({ item }) => (
     <View style={styles.itemContainer}>
       <Text style={styles.englishWord}>{item.englishWord}</Text>
@@ -15,7 +17,7 @@ export default function UndecidedScreen() {
 
   return (
     <FlatList
-      data={wordListLearned}
+      data={reversedList}
       renderItem={renderItem}
       keyExtractor={(item) => item.englishWord}
       contentContainerStyle={styles.container}
