@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import React, { useEffect, useState, useContext } from "react";
-import Icon from "react-native-vector-icons/FontAwesome";
 import * as SQLite from "expo-sqlite";
 import data from "../assets/word_data.json";
 import { CounterContext } from "../contex/CounterContex";
+import ButtonStatus from "../components/ButtonsStatus";
 
 export default function HomeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -146,20 +146,7 @@ export default function HomeScreen() {
         <Text style={styles.translationExample}>{word.translatedSentence}</Text>
         <Text style={styles.definition}>{word.definition}</Text>
       </View>
-      <View style={styles.contentButtons}>
-        <Pressable onPress={notLearned} style={styles.buttonStatus}>
-          <Icon name="thumbs-down" size={30} color="#FF0000" />
-          <Text style={styles.ipa}>Não Aprendi</Text>
-        </Pressable>
-        <Pressable onPress={undecided} style={styles.buttonStatus}>
-          <Icon name="question-circle-o" size={30} color="#FFE600" />
-          <Text style={styles.ipa}>Indeciso</Text>
-        </Pressable>
-        <Pressable onPress={learned} style={styles.buttonStatus}>
-          <Icon name="thumbs-up" size={30} color="#00FF00" />
-          <Text style={styles.ipa}>Aprendi</Text>
-        </Pressable>
-      </View>
+      <ButtonStatus f1={notLearned} f2={undecided} f3={learned} />
     </View>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Animated } from "react-native";
+import ButtonStatus from "./ButtonsStatus";
 
 export default function MenuScreens(props) {
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -15,7 +16,7 @@ export default function MenuScreens(props) {
     } else {
       setSelectedIndex(index);
       Animated.timing(animation, {
-        toValue: 150,
+        toValue: 200,
         duration: 300,
         useNativeDriver: false,
       }).start();
@@ -36,6 +37,7 @@ export default function MenuScreens(props) {
           <Text style={styles.detailText}>Exemplo: {item.sentence}</Text>
           <Text style={styles.detailText}>Tradução: {item.translatedSentence}</Text>
           <Text style={styles.detailText}>Definição: {item.definition}</Text>
+          <ButtonStatus />
         </Animated.View>
       )}
     </View>
