@@ -12,8 +12,7 @@ export default function HomeScreen() {
   const [wordListUndecided, setWordListUndecided] = useState([]);
   const [wordListNotLearned, setWordListNotLearned] = useState([]);
 
-  const { dbContext } = useContext(CounterContext);
-  const { functionContext } = useContext(CounterContext);
+  const { dbContext, functionContext } = useContext(CounterContext);
 
   let db;
 
@@ -40,9 +39,9 @@ export default function HomeScreen() {
     setup();
   }, []);
 
-  // useEffect(() => {
-  //   functionContext(notLearned, undecided, learned);
-  // }, []);
+  useEffect(() => {
+    functionContext(notLearned, undecided, learned);
+  }, []);
 
   useEffect(() => {
     const learned = wordList.filter((word) => word.status === 2);
@@ -80,12 +79,9 @@ export default function HomeScreen() {
     }
   }
 
-  async function updateStatus(status) {
+  async function updateStatus(status, remetente, index) {
     db = await SQLite.openDatabaseAsync("wordsdb");
-    await db.runAsync("UPDATE words SET status = ? WHERE englishWord = ?", [
-      status,
-      wordListNotLearned[currentIndex].englishWord,
-    ]);
+    await db.runAsync("UPDATE words SET status = ? WHERE englishWord = ?", [status, remetente[index].englishWord]);
     const updatedWords = await db.getAllAsync("SELECT * FROM words");
     setWordList(updatedWords);
   }
@@ -108,18 +104,18 @@ export default function HomeScreen() {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + wordList.length) % wordList.length);
   };
 
-  function notLearned() {
-    updateStatus(0);
+  function notLearned(remetente, index) {
+    updateStatus(0, remetente, index);
     console.log("nao sei");
   }
 
-  function undecided() {
-    updateStatus(1);
+  function undecided(remetente, index) {
+    updateStatus(1, remetente, index);
     console.log("indeciso");
   }
 
-  function learned() {
-    updateStatus(2);
+  function learned(remetente, index) {
+    updateStatus(2, remetente, index);
     console.log("aprendi");
   }
 
@@ -153,7 +149,17 @@ export default function HomeScreen() {
         <Text style={styles.translationExample}>{word.translatedSentence}</Text>
         <Text style={styles.definition}>{word.definition}</Text>
       </View>
-      <ButtonStatus f1={notLearned} f2={undecided} f3={learned} />
+      <ButtonStatus
+        f1={() => {
+          notLearned(wordListNotLearned, currentIndex);
+        }}
+        f2={() => {
+          undecided(wordListNotLearned, currentIndex);
+        }}
+        f3={() => {
+          learned(wordListNotLearned, currentIndex);
+        }}
+      />
     </View>
   );
 }

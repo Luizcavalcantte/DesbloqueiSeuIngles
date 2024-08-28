@@ -6,6 +6,7 @@ import { CounterContext } from "../contex/CounterContex";
 export default function MenuScreens(props) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const animation = useRef(new Animated.Value(0)).current;
+  const { funcs } = useContext(CounterContext);
 
   const handleItemPress = (index) => {
     if (selectedIndex === index) {
@@ -40,13 +41,13 @@ export default function MenuScreens(props) {
           <Text style={styles.detailText}>Definição: {item.definition}</Text>
           <ButtonStatus
             f1={() => {
-              console.log("nao aprendi menuscreen");
+              funcs[0].f1([...props.wordList].reverse(), index);
             }}
             f2={() => {
-              console.log("indeciso menuscreen");
+              funcs[1].f2([...props.wordList].reverse(), index);
             }}
             f3={() => {
-              console.log("aprendi menuscreen");
+              funcs[2].f3([...props.wordList].reverse(), index);
             }}
           />
         </Animated.View>
