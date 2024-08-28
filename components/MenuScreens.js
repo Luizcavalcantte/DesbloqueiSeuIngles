@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useContext } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Animated } from "react-native";
 import ButtonStatus from "./ButtonsStatus";
+import { CounterContext } from "../contex/CounterContex";
 
 export default function MenuScreens(props) {
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -37,7 +38,17 @@ export default function MenuScreens(props) {
           <Text style={styles.detailText}>Exemplo: {item.sentence}</Text>
           <Text style={styles.detailText}>Tradução: {item.translatedSentence}</Text>
           <Text style={styles.detailText}>Definição: {item.definition}</Text>
-          <ButtonStatus />
+          <ButtonStatus
+            f1={() => {
+              console.log("nao aprendi menuscreen");
+            }}
+            f2={() => {
+              console.log("indeciso menuscreen");
+            }}
+            f3={() => {
+              console.log("aprendi menuscreen");
+            }}
+          />
         </Animated.View>
       )}
     </View>

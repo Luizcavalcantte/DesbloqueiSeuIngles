@@ -13,6 +13,7 @@ export default function HomeScreen() {
   const [wordListNotLearned, setWordListNotLearned] = useState([]);
 
   const { dbContext } = useContext(CounterContext);
+  const { functionContext } = useContext(CounterContext);
 
   let db;
 
@@ -38,6 +39,10 @@ export default function HomeScreen() {
 
     setup();
   }, []);
+
+  // useEffect(() => {
+  //   functionContext(notLearned, undecided, learned);
+  // }, []);
 
   useEffect(() => {
     const learned = wordList.filter((word) => word.status === 2);
@@ -103,17 +108,19 @@ export default function HomeScreen() {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + wordList.length) % wordList.length);
   };
 
-  function learned() {
-    updateStatus(2);
-    console.log("aprendi");
+  function notLearned() {
+    updateStatus(0);
+    console.log("nao sei");
   }
+
   function undecided() {
     updateStatus(1);
     console.log("indeciso");
   }
-  function notLearned() {
-    updateStatus(0);
-    console.log("nao sei");
+
+  function learned() {
+    updateStatus(2);
+    console.log("aprendi");
   }
 
   const word = wordListNotLearned[currentIndex];
