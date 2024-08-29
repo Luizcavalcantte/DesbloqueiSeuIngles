@@ -6,7 +6,7 @@ import { CounterContext } from "../contex/CounterContex";
 export default function MenuScreens(props) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const animation = useRef(new Animated.Value(0)).current;
-  const { funcs } = useContext(CounterContext);
+  const { arreyFunctionButtonStatus } = useContext(CounterContext);
 
   const handleItemPress = (index) => {
     if (selectedIndex === index) {
@@ -40,14 +40,14 @@ export default function MenuScreens(props) {
           <Text style={styles.detailText}>Tradução: {item.translatedSentence}</Text>
           <Text style={styles.detailText}>Definição: {item.definition}</Text>
           <ButtonStatus
-            f1={() => {
-              funcs[0].f1([...props.wordList].reverse(), index);
+            buttonFunctionNotLearned={() => {
+              arreyFunctionButtonStatus[0].notLearned([...props.wordList].reverse(), index);
             }}
-            f2={() => {
-              funcs[1].f2([...props.wordList].reverse(), index);
+            buttonFunctionUndecided={() => {
+              arreyFunctionButtonStatus[1].undecided([...props.wordList].reverse(), index);
             }}
-            f3={() => {
-              funcs[2].f3([...props.wordList].reverse(), index);
+            buttonFunctionLearned={() => {
+              arreyFunctionButtonStatus[2].learned([...props.wordList].reverse(), index);
             }}
           />
         </Animated.View>

@@ -12,7 +12,7 @@ export default function HomeScreen() {
   const [wordListUndecided, setWordListUndecided] = useState([]);
   const [wordListNotLearned, setWordListNotLearned] = useState([]);
 
-  const { dbContext, functionContext } = useContext(CounterContext);
+  const { dbContext, functionContextButtonStatus } = useContext(CounterContext);
 
   let db;
 
@@ -40,7 +40,7 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    functionContext(notLearned, undecided, learned);
+    functionContextButtonStatus(notLearned, undecided, learned);
   }, []);
 
   useEffect(() => {
@@ -79,9 +79,9 @@ export default function HomeScreen() {
     }
   }
 
-  async function updateStatus(status, remetente, index) {
+  async function updateStatus(status, sender, index) {
     db = await SQLite.openDatabaseAsync("wordsdb");
-    await db.runAsync("UPDATE words SET status = ? WHERE englishWord = ?", [status, remetente[index].englishWord]);
+    await db.runAsync("UPDATE words SET status = ? WHERE englishWord = ?", [status, sender[index].englishWord]);
     const updatedWords = await db.getAllAsync("SELECT * FROM words");
     setWordList(updatedWords);
   }
@@ -104,18 +104,18 @@ export default function HomeScreen() {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + wordList.length) % wordList.length);
   };
 
-  function notLearned(remetente, index) {
-    updateStatus(0, remetente, index);
+  function notLearned(sender, index) {
+    updateStatus(0, sender, index);
     console.log("nao sei");
   }
 
-  function undecided(remetente, index) {
-    updateStatus(1, remetente, index);
+  function undecided(sender, index) {
+    updateStatus(1, sender, index);
     console.log("indeciso");
   }
 
-  function learned(remetente, index) {
-    updateStatus(2, remetente, index);
+  function learned(sender, index) {
+    updateStatus(2, sender, index);
     console.log("aprendi");
   }
 
@@ -150,13 +150,13 @@ export default function HomeScreen() {
         <Text style={styles.definition}>{word.definition}</Text>
       </View>
       <ButtonStatus
-        f1={() => {
+        buttonFunctionNotLearned={() => {
           notLearned(wordListNotLearned, currentIndex);
         }}
-        f2={() => {
+        buttonFunctionUndecided={() => {
           undecided(wordListNotLearned, currentIndex);
         }}
-        f3={() => {
+        buttonFunctionLearned={() => {
           learned(wordListNotLearned, currentIndex);
         }}
       />

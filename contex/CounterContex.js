@@ -15,9 +15,9 @@ export const CounterProvider = ({ children }) => {
   const [functionLearned, setFunctionLearned] = useState(null);
   const [functionUndecided, setFunctionUndecided] = useState(null);
   const [functionNotLearned, setFunctionNotLearned] = useState(null);
-  const [funcs, setFuncs] = useState([]);
-  function functionContext(f1, f2, f3) {
-    setFuncs([{ f1 }, { f2 }, { f3 }]);
+  const [arreyFunctionButtonStatus, setArreyFunctionButtonStatus] = useState([]);
+  function functionContextButtonStatus(notLearned, undecided, learned) {
+    setArreyFunctionButtonStatus([{ notLearned }, { undecided }, { learned }]);
   }
 
   return (
@@ -30,8 +30,8 @@ export const CounterProvider = ({ children }) => {
         functionLearned,
         functionUndecided,
         functionNotLearned,
-        functionContext,
-        funcs,
+        functionContextButtonStatus,
+        arreyFunctionButtonStatus,
       }}
     >
       {children}
