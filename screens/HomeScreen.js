@@ -1,9 +1,19 @@
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+  TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import React, { useEffect, useState, useContext } from "react";
 import * as SQLite from "expo-sqlite";
 import data from "../assets/word_data.json";
 import { CounterContext } from "../contex/CounterContex";
 import ButtonStatus from "../components/ButtonsStatus";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 export default function HomeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -11,8 +21,9 @@ export default function HomeScreen() {
   const [wordListLearned, setWordListLearned] = useState([]);
   const [wordListUndecided, setWordListUndecided] = useState([]);
   const [wordListNotLearned, setWordListNotLearned] = useState([]);
-
   const { dbContext, functionContextButtonStatus } = useContext(CounterContext);
+
+  const [textInput, setTextInput] = useState("");
 
   let db;
 
@@ -121,59 +132,106 @@ export default function HomeScreen() {
 
   const word = wordListNotLearned[currentIndex];
 
+  async function moveItemNotLearned() {
+    const updatedWordListNotLearned = [...wordListNotLearned];
+
+    const [item] = updatedWordListNotLearned.splice(currentIndex, 1);
+    console.log(item);
+
+    db = await SQLite.openDatabaseAsync("wordsdb");
+    await db.runAsync("DELETE FROM words WHERE englishWord = ?", [item.englishWord]);
+    await db.runAsync(
+      "INSERT INTO words (englishWord, translatedWord, sentence, translatedSentence, ipa, definition, status) VALUES (?, ?, ?, ?, ?, ?, ?);",
+      [
+        item.englishWord,
+        item.translatedWord,
+        item.sentence,
+        item.translatedSentence,
+        item.ipa,
+        item.definition,
+        item.status,
+      ]
+    );
+    updatebd();
+  }
+
+  function search() {
+    const palavraFiltrada = wordList.filter((words) =>
+      words.englishWord.toLowerCase().includes(textInput.toLowerCase())
+    );
+    console.log(palavraFiltrada);
+  }
+
   return (
-    <View style={styles.Container}>
-      <View style={styles.contents}>
-        <Pressable onPress={() => console.log(wordListLearned)}>
-          <Text>learned</Text>
-        </Pressable>
-        <Pressable onPress={() => console.log(word.status)}>
-          <Text>status</Text>
-        </Pressable>
-        <View style={styles.wordContainer}>
-          <Pressable
-            style={[styles.buttonChangeWord, { opacity: currentIndex > 0 ? 1 : 0 }]}
-            onPress={previousWord}
-            disabled={currentIndex === 0}
-          >
-            <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{"<"}</Text>
-          </Pressable>
-          <Text style={styles.englishWord}>{word.englishWord}</Text>
-          <Pressable style={styles.buttonChangeWord} onPress={nextWord}>
-            <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{">"}</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.Container}>
+        <View style={styles.search}>
+          <TextInput
+            placeholderTextColor="#fff"
+            color="#ffffff"
+            placeholder="Pesquisar"
+            style
+            value={textInput}
+            onChangeText={setTextInput}
+          ></TextInput>
+          <Pressable onPress={search} style>
+            <Icon name="search" size={30} color="#fff" />
           </Pressable>
         </View>
-        <Text style={styles.ipa}>{word.ipa}</Text>
-        <Text style={styles.translatedWord}>{word.translatedWord}</Text>
-        <Text style={styles.example}>{word.sentence}</Text>
-        <Text style={styles.translationExample}>{word.translatedSentence}</Text>
-        <Text style={styles.definition}>{word.definition}</Text>
+        <View style={styles.contents}>
+          <Pressable onPress={search}>
+            <Text>BTN DE TESTE 1</Text>
+          </Pressable>
+          <Pressable onPress={() => console.log(word.status)}>
+            <Text>BTN DE TESTE 2</Text>
+          </Pressable>
+          <View style={styles.wordContainer}>
+            <Pressable
+              style={[styles.buttonChangeWord, { opacity: currentIndex > 0 ? 1 : 0 }]}
+              onPress={previousWord}
+              disabled={currentIndex === 0}
+            >
+              <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{"<"}</Text>
+            </Pressable>
+            <Text style={styles.englishWord}>{word.englishWord}</Text>
+            <Pressable style={styles.buttonChangeWord} onPress={nextWord}>
+              <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{">"}</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.ipa}>{word.ipa}</Text>
+          <Text style={styles.translatedWord}>{word.translatedWord}</Text>
+          <Text style={styles.example}>{word.sentence}</Text>
+          <Text style={styles.translationExample}>{word.translatedSentence}</Text>
+          <Text style={styles.definition}>{word.definition}</Text>
+        </View>
+        <ButtonStatus
+          buttonFunctionNotLearned={() => {
+            moveItemNotLearned();
+          }}
+          buttonFunctionUndecided={() => {
+            undecided(wordListNotLearned, currentIndex);
+          }}
+          buttonFunctionLearned={() => {
+            learned(wordListNotLearned, currentIndex);
+          }}
+        />
       </View>
-      <ButtonStatus
-        buttonFunctionNotLearned={() => {
-          notLearned(wordListNotLearned, currentIndex);
-        }}
-        buttonFunctionUndecided={() => {
-          undecided(wordListNotLearned, currentIndex);
-        }}
-        buttonFunctionLearned={() => {
-          learned(wordListNotLearned, currentIndex);
-        }}
-      />
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
   Container: {
     paddingHorizontal: 10,
-    backgroundColor: "#777777",
+    backgroundColor: "#444",
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   contents: {
+    flex: 1,
     alignItems: "center",
+    justifyContent: "center",
   },
   wordContainer: {
     flexDirection: "row",
@@ -224,5 +282,13 @@ const styles = StyleSheet.create({
   buttonStatus: {
     flexDirection: "column",
     alignItems: "center",
+  },
+  search: {
+    position: "absolute",
+    flexDirection: "row",
+    top: 10,
+    right: 10,
+    width: "80%",
+    justifyContent: "space-between",
   },
 });
