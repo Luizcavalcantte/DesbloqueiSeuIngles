@@ -7,13 +7,15 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   Keyboard,
+  FlatList,
 } from "react-native";
 import React, { useEffect, useState, useContext } from "react";
+import Icon from "react-native-vector-icons/FontAwesome";
 import * as SQLite from "expo-sqlite";
 import data from "../assets/word_data.json";
 import { CounterContext } from "../contex/CounterContex";
 import ButtonStatus from "../components/ButtonsStatus";
-import Icon from "react-native-vector-icons/FontAwesome";
+import MenuScreens from "../components/MenuScreens";
 
 export default function HomeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,9 +23,12 @@ export default function HomeScreen() {
   const [wordListLearned, setWordListLearned] = useState([]);
   const [wordListUndecided, setWordListUndecided] = useState([]);
   const [wordListNotLearned, setWordListNotLearned] = useState([]);
+
   const { dbContext, functionContextButtonStatus } = useContext(CounterContext);
 
   const [textInput, setTextInput] = useState("");
+  const [inputVisible, setInputVisible] = useState(false);
+  const [searchWords, setSearchWords] = useState([]);
 
   let db;
 
@@ -64,6 +69,10 @@ export default function HomeScreen() {
 
     dbContext(learned, undecided, notLearned);
   }, [wordList]);
+
+  useEffect(() => {
+    search();
+  }, [textInput]);
 
   async function updatebd() {
     const dbAtualizado = await db.getAllAsync("SELECT * FROM words");
@@ -156,35 +165,59 @@ export default function HomeScreen() {
   }
 
   function search() {
-    const palavraFiltrada = wordList.filter((words) =>
-      words.englishWord.toLowerCase().includes(textInput.toLowerCase())
-    );
-    console.log(palavraFiltrada);
+    if (textInput == "" || inputVisible == false) {
+      setInputVisible(true);
+    } else {
+      const palavraFiltrada = wordList.filter(
+        (words) => words.englishWord.toLowerCase() == textInput.toLocaleLowerCase()
+      );
+      setSearchWords(palavraFiltrada);
+      console.log(palavraFiltrada);
+    }
+  }
+
+  function hideItens() {
+    Keyboard.dismiss;
+    setSearchWords([]);
+    setTextInput("");
+    setInputVisible(false);
+  }
+
+  function renderItem({ item }) {
+    return <MenuScreens styles={{ backgroundColor: "#fff" }} wordList={searchWords} />;
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={hideItens}>
       <View style={styles.Container}>
-        <View style={styles.search}>
+        {inputVisible && (
           <TextInput
+            style={styles.search}
             placeholderTextColor="#fff"
             color="#ffffff"
             placeholder="Pesquisar"
-            style
             value={textInput}
-            onChangeText={setTextInput}
+            onChangeText={(text) => {
+              setTextInput(text);
+              search();
+            }}
           ></TextInput>
-          <Pressable onPress={search} style>
-            <Icon name="search" size={30} color="#fff" />
-          </Pressable>
-        </View>
+        )}
+
+        <Pressable style={styles.buttonSearch} onPress={search}>
+          <Icon name="search" size={30} color="#fff" />
+        </Pressable>
+
         <View style={styles.contents}>
-          <Pressable onPress={search}>
-            <Text>BTN DE TESTE 1</Text>
-          </Pressable>
-          <Pressable onPress={() => console.log(word.status)}>
-            <Text>BTN DE TESTE 2</Text>
-          </Pressable>
+          {searchWords.length > 0 && inputVisible == true && (
+            <FlatList
+              style={styles.searchResults}
+              data={searchWords}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.englishWord}
+            />
+          )}
+
           <View style={styles.wordContainer}>
             <Pressable
               style={[styles.buttonChangeWord, { opacity: currentIndex > 0 ? 1 : 0 }]}
@@ -193,11 +226,12 @@ export default function HomeScreen() {
             >
               <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{"<"}</Text>
             </Pressable>
-            <Text style={styles.englishWord}>{word.englishWord}</Text>
+
             <Pressable style={styles.buttonChangeWord} onPress={nextWord}>
               <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{">"}</Text>
             </Pressable>
           </View>
+          <Text style={styles.englishWord}>{word.englishWord}</Text>
           <Text style={styles.ipa}>{word.ipa}</Text>
           <Text style={styles.translatedWord}>{word.translatedWord}</Text>
           <Text style={styles.example}>{word.sentence}</Text>
@@ -234,21 +268,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   wordContainer: {
+    position: "absolute",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    width: "85%",
+    width: "100%",
+
+    top: "12%",
   },
   englishWord: {
+    position: "absolute",
+    top: "10%",
+
     fontWeight: "bold",
     color: "#799afc",
     fontSize: 50,
-    textAlign: "center",
-    width: "60%",
   },
   buttonChangeWord: {
+    height: 400,
+    width: 100,
     alignItems: "center",
-    justifyContent: "center",
   },
   ipa: {
     color: "#ffffff",
@@ -273,22 +312,26 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     marginTop: 30,
   },
-  contentButtons: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 100,
-  },
-  buttonStatus: {
-    flexDirection: "column",
-    alignItems: "center",
-  },
+
   search: {
     position: "absolute",
-    flexDirection: "row",
+    width: "80%",
+    top: 10,
+    paddingLeft: 10,
+    borderColor: "#888",
+    borderWidth: 2,
+    padding: 3,
+    borderRadius: 8,
+  },
+  buttonSearch: {
+    position: "absolute",
     top: 10,
     right: 10,
-    width: "80%",
-    justifyContent: "space-between",
+  },
+  searchResults: {
+    position: "absolute",
+    width: "100%",
+    top: 50,
+    zIndex: 1,
   },
 });

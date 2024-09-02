@@ -56,7 +56,7 @@ export default function MenuScreens(props) {
   );
 
   return (
-    <View style={{ backgroundColor: "#777", flex: 1 }}>
+    <View style={{ backgroundColor: "#444", flex: 1 }}>
       <FlatList
         data={[...props.wordList].reverse()}
         renderItem={renderItem}
@@ -70,7 +70,7 @@ export default function MenuScreens(props) {
 const styles = StyleSheet.create({
   container: {
     padding: 10,
-    backgroundColor: "#777",
+    backgroundColor: "#444",
   },
   itemContainer: {
     flexDirection: "row",
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 10,
     marginVertical: 5,
-    backgroundColor: "#333",
+    backgroundColor: "#222",
     borderRadius: 8,
     shadowColor: "#000",
     shadowOpacity: 0.1,
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     overflow: "hidden",
-    backgroundColor: "#444",
+    backgroundColor: "#333",
     borderRadius: 8,
     marginTop: 5,
     paddingHorizontal: 10,
