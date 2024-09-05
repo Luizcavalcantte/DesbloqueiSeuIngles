@@ -1,226 +1,133 @@
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from "react-native";
-import React, { useEffect, useState } from "react";
-import Icon from "react-native-vector-icons/FontAwesome";
-import * as SQLite from "expo-sqlite";
-import data from "../assets/word_data.json";
-import { useNavigation } from "@react-navigation/native";
+import React, { useState, useRef, useContext } from "react";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Animated } from "react-native";
+import ButtonStatus from "./ButtonsStatus";
+import { CounterContext } from "../contex/CounterContex";
 
-export default function HomeScreen() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [wordList, setWordList] = useState([]);
-  const [wordListLearned, setWordListLearned] = useState([]);
-  const [wordListUndecided, setWordListUndecided] = useState([]);
-  const [wordListNotLearned, setWordListNotLearned] = useState([]);
+export default function MenuScreens(props) {
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const animation = useRef(new Animated.Value(0)).current;
+  const { arreyFunctionButtonStatus } = useContext(CounterContext);
 
-  const navigation = useNavigation();
-
-  let db;
-
-  useEffect(() => {
-    async function setup() {
-      db = await SQLite.openDatabaseAsync("wordsdb");
-
-      await db.execAsync(`
-        CREATE TABLE IF NOT EXISTS words (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          englishWord TEXT,
-          translatedWord TEXT,
-          sentence TEXT,
-          translatedSentence TEXT,
-          ipa TEXT,
-          definition TEXT,
-          status INTEGER
-        );
-      `);
-
-      await updatebd();
-    }
-
-    setup();
-  }, []);
-
-  useEffect(() => {
-    const learned = wordList.filter((word) => word.status === 2);
-    const undecided = wordList.filter((word) => word.status === 1);
-    const notLearned = wordList.filter((word) => word.status === 0);
-    setWordListLearned(learned);
-    setWordListUndecided(undecided);
-    setWordListNotLearned(notLearned);
-  }, [wordList]);
-
-  async function updatebd() {
-    const dbAtualizado = await db.getAllAsync("SELECT * FROM words");
-    if (dbAtualizado.length === 0) {
-      for (let i = 0; i < data.length; i++) {
-        let word = data[i];
-        await db.runAsync(
-          "INSERT INTO words (englishWord, translatedWord, sentence, translatedSentence, ipa, definition, status) VALUES (?, ?, ?, ?, ?, ?, ?);",
-          [
-            word.englishWord,
-            word.translatedWord,
-            word.sentence,
-            word.translatedSentence,
-            word.ipa,
-            word.definition,
-            word.status,
-          ]
-        );
-      }
-      const updatedWords = await db.getAllAsync("SELECT * FROM words");
-      setWordList(updatedWords);
+  const handleItemPress = (index) => {
+    if (selectedIndex === index) {
+      Animated.timing(animation, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: false,
+      }).start(() => setSelectedIndex(null));
     } else {
-      setWordList(dbAtualizado);
+      if (selectedIndex !== null) {
+        Animated.timing(animation, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: false,
+        }).start(() => {
+          setSelectedIndex(index); // Depois de fechar a gaveta atual, abrimos a nova
+          Animated.timing(animation, {
+            toValue: 230, // Altura da gaveta quando aberta
+            duration: 300,
+            useNativeDriver: false,
+          }).start();
+        });
+      } else {
+        // Se nenhuma gaveta estiver aberta, simplesmente abrimos a nova
+        setSelectedIndex(index);
+        Animated.timing(animation, {
+          toValue: 230,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      }
     }
-  }
-
-  async function updateStatus(status) {
-    db = await SQLite.openDatabaseAsync("wordsdb");
-    await db.runAsync("UPDATE words SET status = ? WHERE englishWord = ?", [
-      status,
-      wordListNotLearned[currentIndex].englishWord,
-    ]);
-    const updatedWords = await db.getAllAsync("SELECT * FROM words");
-    setWordList(updatedWords);
-  }
-
-  if (!wordList || wordList.length === 0) {
-    return (
-      <ActivityIndicator
-        style={{ alignItems: "center", justifyContent: "center", flex: 1, backgroundColor: "#2c2f38" }}
-        size="large"
-        color="#fff"
-      />
-    );
-  }
-
-  const nextWord = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % wordList.length);
   };
 
-  const previousWord = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + wordList.length) % wordList.length);
-  };
+  const renderItem = ({ item, index }) => (
+    <View>
+      <TouchableOpacity style={styles.itemContainer} onPress={() => handleItemPress(index)}>
+        <Text style={styles.englishWord}>{item.englishWord}</Text>
+        <Text style={styles.separator}> - </Text>
+        <Text style={styles.translatedWord}>{item.translatedWord}</Text>
+      </TouchableOpacity>
 
-  function learned() {
-    updateStatus(2);
-    console.log("aprendi");
-  }
-  function undecided() {
-    updateStatus(1);
-    console.log("indeciso");
-  }
-  function notLearned() {
-    updateStatus(0);
-    console.log("nao sei");
-  }
-
-  const word = wordListNotLearned[currentIndex];
+      {selectedIndex === index && (
+        <Animated.View style={[styles.detailsContainer, { height: animation }]}>
+          <Text style={styles.detailText}>IPA: {item.ipa}</Text>
+          <Text style={styles.detailText}>Exemplo: {item.sentence}</Text>
+          <Text style={styles.detailText}>Tradução: {item.translatedSentence}</Text>
+          <Text style={styles.detailText}>Definição: {item.definition}</Text>
+          <ButtonStatus
+            buttonFunctionNotLearned={() => {
+              arreyFunctionButtonStatus[0].notLearned([...props.wordList].reverse(), index);
+            }}
+            buttonFunctionUndecided={() => {
+              arreyFunctionButtonStatus[1].undecided([...props.wordList].reverse(), index);
+            }}
+            buttonFunctionLearned={() => {
+              arreyFunctionButtonStatus[2].learned([...props.wordList].reverse(), index);
+            }}
+          />
+        </Animated.View>
+      )}
+    </View>
+  );
 
   return (
-    <View style={styles.Container}>
-      <View style={styles.contents}>
-        <Pressable onPress={() => console.log(wordListLearned)}>
-          <Text>learned</Text>
-        </Pressable>
-        <Pressable onPress={() => console.log(word.status)}>
-          <Text>status</Text>
-        </Pressable>
-        <View style={styles.wordContainer}>
-          <Pressable
-            style={[styles.buttonChangeWord, { opacity: currentIndex > 0 ? 1 : 0 }]}
-            onPress={previousWord}
-            disabled={currentIndex === 0}
-          >
-            <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{"<"}</Text>
-          </Pressable>
-          <Text style={styles.englishWord}>{word.englishWord}</Text>
-          <Pressable style={styles.buttonChangeWord} onPress={nextWord}>
-            <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{">"}</Text>
-          </Pressable>
-        </View>
-        <Text style={styles.ipa}>{word.ipa}</Text>
-        <Text style={styles.translatedWord}>{word.translatedWord}</Text>
-        <Text style={styles.example}>{word.sentence}</Text>
-        <Text style={styles.translationExample}>{word.translatedSentence}</Text>
-        <Text style={styles.definition}>{word.definition}</Text>
-      </View>
-      <View style={styles.contentButtons}>
-        <Pressable onPress={notLearned} style={styles.buttonStatus}>
-          <Icon name="thumbs-down" size={30} color="#FF0000" />
-          <Text style={styles.ipa}>Não Aprendi</Text>
-        </Pressable>
-        <Pressable onPress={undecided} style={styles.buttonStatus}>
-          <Icon name="question-circle-o" size={30} color="#FFE600" />
-          <Text style={styles.ipa}>Indeciso</Text>
-        </Pressable>
-        <Pressable onPress={learned} style={styles.buttonStatus}>
-          <Icon name="thumbs-up" size={30} color="#00FF00" />
-          <Text style={styles.ipa}>Aprendi</Text>
-        </Pressable>
-      </View>
+    <View style={{ backgroundColor: "#444", flex: 1 }}>
+      <FlatList
+        data={[...props.wordList].reverse()}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.englishWord}
+        contentContainerStyle={styles.container}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  Container: {
-    paddingHorizontal: 10,
-    backgroundColor: "#777777",
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+  container: {
+    padding: 10,
+    backgroundColor: "#444",
   },
-  contents: {
-    alignItems: "center",
-  },
-  wordContainer: {
+  itemContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    width: "85%",
+    padding: 10,
+    marginVertical: 5,
+    backgroundColor: "#222",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   englishWord: {
+    color: "#fff",
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#799afc",
-    fontSize: 50,
-    textAlign: "center",
-    width: "60%",
   },
-  buttonChangeWord: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ipa: {
-    color: "#ffffff",
-    margin: 0,
+  separator: {
+    color: "#fff",
+    fontSize: 18,
   },
   translatedWord: {
-    color: "#b1c4fc",
-    fontSize: 40,
-    marginTop: 10,
+    color: "#fff",
+    fontSize: 18,
+    fontStyle: "italic",
   },
-  example: {
-    color: "#799afc",
-    fontSize: 20,
-    marginTop: 100,
+  detailsContainer: {
+    overflow: "hidden",
+    backgroundColor: "#333",
+    borderRadius: 8,
+    marginTop: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    justifyContent: "space-between",
   },
-  translationExample: {
-    color: "#b1c4fc",
-    fontSize: 20,
-  },
-
-  definition: {
-    color: "#ffffff",
-    marginTop: 30,
-  },
-  contentButtons: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 100,
-  },
-  buttonStatus: {
-    flexDirection: "column",
-    alignItems: "center",
+  detailText: {
+    color: "#fff",
+    fontSize: 16,
+    marginBottom: 5,
   },
 });

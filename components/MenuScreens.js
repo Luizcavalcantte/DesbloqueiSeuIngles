@@ -12,16 +12,32 @@ export default function MenuScreens(props) {
     if (selectedIndex === index) {
       Animated.timing(animation, {
         toValue: 0,
-        duration: 300,
+        duration: 150,
         useNativeDriver: false,
       }).start(() => setSelectedIndex(null));
     } else {
-      setSelectedIndex(index);
-      Animated.timing(animation, {
-        toValue: 230,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
+      if (selectedIndex !== null) {
+        Animated.timing(animation, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: false,
+        }).start(() => {
+          setSelectedIndex(index); 
+          Animated.timing(animation, {
+            toValue: 230, 
+            duration: 300,
+            useNativeDriver: false,
+          }).start();
+        });
+      } else {
+        
+        setSelectedIndex(index);
+        Animated.timing(animation, {
+          toValue: 230,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      }
     }
   };
 
