@@ -118,25 +118,28 @@ export default function HomeScreen() {
 
   const nextWord = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % wordList.length);
+    setSearchWords([]);
+    setTextInput("");
+    setInputVisible(false);
   };
 
   const previousWord = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + wordList.length) % wordList.length);
+    setSearchWords([]);
+    setTextInput("");
+    setInputVisible(false);
   };
 
   function notLearned(sender, index) {
     updateStatus(0, sender, index);
-    console.log("nao sei");
   }
 
   function undecided(sender, index) {
     updateStatus(1, sender, index);
-    console.log("indeciso");
   }
 
   function learned(sender, index) {
     updateStatus(2, sender, index);
-    console.log("aprendi");
   }
 
   const word = wordListNotLearned[currentIndex];
@@ -145,7 +148,6 @@ export default function HomeScreen() {
     const updatedWordListNotLearned = [...wordListNotLearned];
 
     const [item] = updatedWordListNotLearned.splice(currentIndex, 1);
-    console.log(item);
 
     db = await SQLite.openDatabaseAsync("wordsdb");
     await db.runAsync("DELETE FROM words WHERE englishWord = ?", [item.englishWord]);
@@ -172,7 +174,6 @@ export default function HomeScreen() {
         (words) => words.englishWord.toLowerCase() == textInput.toLocaleLowerCase()
       );
       setSearchWords(palavraFiltrada);
-      console.log(palavraFiltrada);
     }
   }
 
@@ -261,11 +262,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    paddingBottom: 50,
   },
   contents: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 120,
   },
   wordContainer: {
     position: "absolute",
@@ -274,11 +277,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
 
-    top: "12%",
+    top: "5%",
   },
   englishWord: {
     position: "absolute",
-    top: "10%",
+    top: "2%",
 
     fontWeight: "bold",
     color: "#799afc",
@@ -331,7 +334,7 @@ const styles = StyleSheet.create({
   searchResults: {
     position: "absolute",
     width: "100%",
-    top: 50,
+    top: -50,
     zIndex: 1,
   },
 });

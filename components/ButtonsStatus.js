@@ -7,7 +7,7 @@ export default function ButtonStatus(props) {
     <View style={styles.contentButtons}>
       <Pressable onPress={props.buttonFunctionNotLearned} style={styles.buttonStatus}>
         <Icon name="thumbs-down" size={30} color="#FF0000" />
-        <Text style={styles.buttpnText}>Não Aprendi</Text>
+        <Text style={styles.buttpnText}>Não Sei</Text>
       </Pressable>
       <Pressable onPress={props.buttonFunctionUndecided} style={styles.buttonStatus}>
         <Icon name="question-circle-o" size={30} color="#FFE600" />
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   contentButtons: {
     width: "100%",
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
     marginTop: 5,
   },
   buttonStatus: {

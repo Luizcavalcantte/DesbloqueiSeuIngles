@@ -18,7 +18,7 @@ export default function MenuScreens(props) {
     } else {
       setSelectedIndex(index);
       Animated.timing(animation, {
-        toValue: 200,
+        toValue: 230,
         duration: 300,
         useNativeDriver: false,
       }).start();
@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
     paddingHorizontal: 10,
     paddingVertical: 5,
+    justifyContent: "space-between",
   },
   detailText: {
     color: "#fff",
