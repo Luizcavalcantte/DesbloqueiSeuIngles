@@ -237,7 +237,7 @@ export default function HomeScreen() {
             />
           )}
 
-          <View style={styles.wordContainer}>
+          <View style={styles.containerChangeWord}>
             <Pressable
               style={[styles.buttonChangeWord, { opacity: currentIndex > 0 ? 1 : 0 }]}
               onPress={previousWord}
@@ -252,6 +252,7 @@ export default function HomeScreen() {
           </View>
           <Text style={styles.englishWord}>{word.englishWord}</Text>
           <Pressable
+            style={styles.soundButton1}
             onPress={() => {
               playSound(word.englishWord);
             }}
@@ -261,14 +262,15 @@ export default function HomeScreen() {
 
           <Text style={styles.ipa}>{word.ipa}</Text>
           <Text style={styles.translatedWord}>{word.translatedWord}</Text>
-          <Text style={styles.example}>{word.sentence}</Text>
           <Pressable
+            style={styles.soundButton2}
             onPress={() => {
               playSound(word.sentence);
             }}
           >
             <Icon name="volume-up" size={30} color="#fff" />
           </Pressable>
+          <Text style={styles.example}>{word.sentence}</Text>
 
           <Text style={styles.translationExample}>{word.translatedSentence}</Text>
           <Text style={styles.definition}>{word.definition}</Text>
@@ -295,28 +297,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#444",
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+
     paddingBottom: 50,
   },
   contents: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+
     marginTop: 120,
   },
-  wordContainer: {
+  containerChangeWord: {
     position: "absolute",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     width: "100%",
-
     top: "5%",
   },
   englishWord: {
     position: "absolute",
     top: "2%",
-
     fontWeight: "bold",
     color: "#799afc",
     fontSize: 50,
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   },
   ipa: {
     color: "#ffffff",
-    margin: 0,
+    marginTop: 110,
   },
   translatedWord: {
     color: "#b1c4fc",
@@ -338,7 +338,9 @@ const styles = StyleSheet.create({
   example: {
     color: "#799afc",
     fontSize: 20,
-    marginTop: 100,
+  },
+  soundButton2: {
+    marginTop: 50,
   },
   translationExample: {
     color: "#b1c4fc",
@@ -370,5 +372,9 @@ const styles = StyleSheet.create({
     width: "100%",
     top: -50,
     zIndex: 1,
+  },
+  soundButton1: {
+    position: "absolute",
+    top: 75,
   },
 });
