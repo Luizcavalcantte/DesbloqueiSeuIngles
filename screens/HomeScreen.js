@@ -17,6 +17,9 @@ import { CounterContext } from "../contex/CounterContex";
 import ButtonStatus from "../components/ButtonsStatus";
 import MenuScreens from "../components/MenuScreens";
 
+import { Audio } from "expo-av";
+import { fetchAudio } from "../api";
+
 export default function HomeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wordList, setWordList] = useState([]);
@@ -29,6 +32,7 @@ export default function HomeScreen() {
   const [textInput, setTextInput] = useState("");
   const [inputVisible, setInputVisible] = useState(false);
   const [searchWords, setSearchWords] = useState([]);
+  const [audioUrl, setAudioUrl] = useState(null);
 
   let db;
 
@@ -73,6 +77,20 @@ export default function HomeScreen() {
   useEffect(() => {
     search();
   }, [textInput]);
+
+  async function playSound(text) {
+    try {
+      const url = await fetchAudio(text, "en-US");
+      setAudioUrl(url);
+
+      if (audioUrl) {
+        const { sound } = await Audio.Sound.createAsync({ uri: url });
+        await sound.playAsync();
+      }
+    } catch (error) {
+      console.error("Error fetching or playing audio:", error);
+    }
+  }
 
   async function updatebd() {
     const dbAtualizado = await db.getAllAsync("SELECT * FROM words");
@@ -233,9 +251,25 @@ export default function HomeScreen() {
             </Pressable>
           </View>
           <Text style={styles.englishWord}>{word.englishWord}</Text>
+          <Pressable
+            onPress={() => {
+              playSound(word.englishWord);
+            }}
+          >
+            <Icon name="volume-up" size={30} color="#fff" />
+          </Pressable>
+
           <Text style={styles.ipa}>{word.ipa}</Text>
           <Text style={styles.translatedWord}>{word.translatedWord}</Text>
           <Text style={styles.example}>{word.sentence}</Text>
+          <Pressable
+            onPress={() => {
+              playSound(word.sentence);
+            }}
+          >
+            <Icon name="volume-up" size={30} color="#fff" />
+          </Pressable>
+
           <Text style={styles.translationExample}>{word.translatedSentence}</Text>
           <Text style={styles.definition}>{word.definition}</Text>
         </View>

@@ -1,3 +1,4 @@
+import { StatusBar } from "expo-status-bar";
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import DrawerNavigator from "./navigation/DrawerNavigator";
@@ -9,6 +10,7 @@ export default function App() {
       <NavigationContainer>
         <DrawerNavigator />
       </NavigationContainer>
+      <StatusBar style="auto" />
     </CounterProvider>
   );
 }

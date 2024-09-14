@@ -15,15 +15,22 @@
       "supportsTablet": true
     },
     "android": {
+      "permissions": ["RECORD_AUDIO"],
       "softwareKeyboardLayoutMode": "pan",
       "windowSoftInputMode": "adjustResize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.luizcavalcante.DesbloqueiSeuIngles"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "37c42c9a-825e-49e2-8b86-8583c38136db"
+      }
     }
   }
 }
