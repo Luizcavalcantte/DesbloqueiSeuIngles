@@ -1,3 +1,4 @@
+import React, { useEffect, useState, useContext, useRef } from "react";
 import {
   View,
   Text,
@@ -8,8 +9,11 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   FlatList,
+  SafeAreaView,
+  PanResponder,
+  Animated,
 } from "react-native";
-import React, { useEffect, useState, useContext } from "react";
+
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as SQLite from "expo-sqlite";
 import data from "../assets/word_data.json";
@@ -78,6 +82,73 @@ export default function HomeScreen() {
     search();
   }, [textInput]);
 
+  const word = wordListNotLearned[currentIndex];
+
+  const pan = useRef(new Animated.ValueXY()).current;
+
+  function handlePanResponderRelease(e, gestureState) {
+    const { dx } = gestureState; // Obtém a distância deslizada horizontalmente
+    const threshold = 100; // Limite para considerar o gesto como válido para mudar o flashcard
+
+    // Se o gesto for suficientemente grande
+    if (Math.abs(dx) > threshold) {
+      // Define o valor final do movimento do flashcard (fora da tela)
+      const toValue = dx < 0 ? -500 : 500;
+
+      // Animação para mover o flashcard para fora da tela
+      Animated.timing(pan, {
+        toValue: { x: toValue, y: 0 },
+        duration: 300, // Duração da animação
+        useNativeDriver: true, // Utiliza o driver nativo para desempenho melhor
+      }).start(() => {
+        pan.setValue({ x: 0, y: 0 }); // Reseta o valor para a posição original
+        // Muda o flashcard para o próximo ou anterior com base na direção do deslizar
+        if (dx < 0) {
+          //problema o current index é sempre zero aqui dentro dessa func
+          console.log("foi" + currentIndex);
+
+          nextWord();
+        }
+        if (dx > 0) {
+          console.log("voltou" + currentIndex);
+          previousWord();
+        }
+      });
+    } else {
+      // Se o gesto não for suficientemente grande, animação para retornar o flashcard à posição original
+      Animated.spring(pan, {
+        toValue: { x: 0, y: 0 },
+        useNativeDriver: true,
+      }).start();
+    }
+  }
+
+  // Configura o PanResponder para lidar com os gestos de deslizar
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true, // Habilita o PanResponder para todos os gestos
+      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: new Animated.Value(0) }], {
+        useNativeDriver: false, // Utiliza o driver JS para animação de pan
+      }),
+      onPanResponderRelease: handlePanResponderRelease, // Lida com o término do gesto
+    })
+  ).current;
+
+  function nextWord() {
+    setCurrentIndex((previusIndex) => previusIndex + 1);
+
+    setSearchWords([]);
+    setTextInput("");
+    setInputVisible(false);
+  }
+
+  function previousWord() {
+    setCurrentIndex((previusIndex) => previusIndex - 1);
+    setSearchWords([]);
+    setTextInput("");
+    setInputVisible(false);
+  }
+
   async function playSound(text) {
     try {
       const url = await fetchAudio(text, "en-US");
@@ -134,20 +205,6 @@ export default function HomeScreen() {
     );
   }
 
-  const nextWord = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % wordList.length);
-    setSearchWords([]);
-    setTextInput("");
-    setInputVisible(false);
-  };
-
-  const previousWord = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + wordList.length) % wordList.length);
-    setSearchWords([]);
-    setTextInput("");
-    setInputVisible(false);
-  };
-
   function notLearned(sender, index) {
     updateStatus(0, sender, index);
   }
@@ -159,8 +216,6 @@ export default function HomeScreen() {
   function learned(sender, index) {
     updateStatus(2, sender, index);
   }
-
-  const word = wordListNotLearned[currentIndex];
 
   async function moveItemNotLearned() {
     const updatedWordListNotLearned = [...wordListNotLearned];
@@ -207,87 +262,83 @@ export default function HomeScreen() {
   }
 
   return (
-    <TouchableWithoutFeedback onPress={hideItens}>
-      <View style={styles.Container}>
-        {inputVisible && (
-          <TextInput
-            style={styles.search}
-            placeholderTextColor="#fff"
-            color="#ffffff"
-            placeholder="Pesquisar"
-            value={textInput}
-            onChangeText={(text) => {
-              setTextInput(text);
-              search();
-            }}
-          ></TextInput>
-        )}
-
-        <Pressable style={styles.buttonSearch} onPress={search}>
-          <Icon name="search" size={30} color="#fff" />
-        </Pressable>
-
-        <View style={styles.contents}>
-          {searchWords.length > 0 && inputVisible == true && (
-            <FlatList
-              style={styles.searchResults}
-              data={searchWords}
-              renderItem={renderItem}
-              keyExtractor={(item) => item.englishWord}
-            />
+    <SafeAreaView onPress={hideItens}>
+      <Animated.View
+        style={[
+          styles.flashcard,
+          // Aplica a transformação de movimento no flashcard
+          { transform: [{ translateX: pan.x }, { translateY: 0 }] },
+        ]}
+        {...panResponder.panHandlers} // Aplica os manipuladores de gesto ao componente
+      >
+        <View style={styles.Container}>
+          {inputVisible && (
+            <TextInput
+              style={styles.search}
+              placeholderTextColor="#fff"
+              color="#ffffff"
+              placeholder="Pesquisar"
+              value={textInput}
+              onChangeText={(text) => {
+                setTextInput(text);
+                search();
+              }}
+            ></TextInput>
           )}
 
-          <View style={styles.containerChangeWord}>
+          <Pressable style={styles.buttonSearch} onPress={search}>
+            <Icon name="search" size={30} color="#fff" />
+          </Pressable>
+
+          <View style={styles.contents}>
+            {searchWords.length > 0 && inputVisible == true && (
+              <FlatList
+                style={styles.searchResults}
+                data={searchWords}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.englishWord}
+              />
+            )}
+
+            <Text style={styles.englishWord}>{word.englishWord}</Text>
             <Pressable
-              style={[styles.buttonChangeWord, { opacity: currentIndex > 0 ? 1 : 0 }]}
-              onPress={previousWord}
-              disabled={currentIndex === 0}
+              style={styles.soundButton1}
+              onPress={() => {
+                playSound(word.englishWord);
+              }}
             >
-              <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{"<"}</Text>
+              <Icon name="volume-up" size={30} color="#fff" />
             </Pressable>
 
-            <Pressable style={styles.buttonChangeWord} onPress={nextWord}>
-              <Text style={[{ fontSize: 30, color: "#FFFFFF" }]}>{">"}</Text>
+            <Text style={styles.ipa}>{word.ipa}</Text>
+            <Text style={styles.translatedWord}>{word.translatedWord}</Text>
+            <Pressable
+              style={styles.soundButton2}
+              onPress={() => {
+                playSound(word.sentence);
+              }}
+            >
+              <Icon name="volume-up" size={30} color="#fff" />
             </Pressable>
+            <Text style={styles.example}>{word.sentence}</Text>
+
+            <Text style={styles.translationExample}>{word.translatedSentence}</Text>
+            <Text style={styles.definition}>{word.definition}</Text>
           </View>
-          <Text style={styles.englishWord}>{word.englishWord}</Text>
-          <Pressable
-            style={styles.soundButton1}
-            onPress={() => {
-              playSound(word.englishWord);
+          <ButtonStatus
+            buttonFunctionNotLearned={() => {
+              moveItemNotLearned();
             }}
-          >
-            <Icon name="volume-up" size={30} color="#fff" />
-          </Pressable>
-
-          <Text style={styles.ipa}>{word.ipa}</Text>
-          <Text style={styles.translatedWord}>{word.translatedWord}</Text>
-          <Pressable
-            style={styles.soundButton2}
-            onPress={() => {
-              playSound(word.sentence);
+            buttonFunctionUndecided={() => {
+              undecided(wordListNotLearned, currentIndex);
             }}
-          >
-            <Icon name="volume-up" size={30} color="#fff" />
-          </Pressable>
-          <Text style={styles.example}>{word.sentence}</Text>
-
-          <Text style={styles.translationExample}>{word.translatedSentence}</Text>
-          <Text style={styles.definition}>{word.definition}</Text>
+            buttonFunctionLearned={() => {
+              learned(wordListNotLearned, currentIndex);
+            }}
+          />
         </View>
-        <ButtonStatus
-          buttonFunctionNotLearned={() => {
-            moveItemNotLearned();
-          }}
-          buttonFunctionUndecided={() => {
-            undecided(wordListNotLearned, currentIndex);
-          }}
-          buttonFunctionLearned={() => {
-            learned(wordListNotLearned, currentIndex);
-          }}
-        />
-      </View>
-    </TouchableWithoutFeedback>
+      </Animated.View>
+    </SafeAreaView>
   );
 }
 
@@ -376,5 +427,17 @@ const styles = StyleSheet.create({
   soundButton1: {
     position: "absolute",
     top: 75,
+  },
+  flashcard: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+    backgroundColor: "white",
+    elevation: 5, // Sombra para Android
+    shadowOffset: { width: 0, height: 2 }, // Sombra para iOS
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
 });
