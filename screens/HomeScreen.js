@@ -38,6 +38,16 @@ export default function HomeScreen() {
   const [searchWords, setSearchWords] = useState([]);
   const [audioUrl, setAudioUrl] = useState(null);
 
+  const currentIndexRef = useRef(currentIndex);
+  const currentLengthNotLearnedRef = useRef(wordListNotLearned.length);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+  useEffect(() => {
+    currentLengthNotLearnedRef.current = wordListNotLearned.length;
+  }, [wordListNotLearned]);
+
   let db;
 
   useEffect(() => {
@@ -105,12 +115,10 @@ export default function HomeScreen() {
         // Muda o flashcard para o próximo ou anterior com base na direção do deslizar
         if (dx < 0) {
           //problema o current index é sempre zero aqui dentro dessa func
-          console.log("foi" + currentIndex);
 
           nextWord();
         }
         if (dx > 0) {
-          console.log("voltou" + currentIndex);
           previousWord();
         }
       });
@@ -135,18 +143,32 @@ export default function HomeScreen() {
   ).current;
 
   function nextWord() {
-    setCurrentIndex((previusIndex) => previusIndex + 1);
-
-    setSearchWords([]);
-    setTextInput("");
-    setInputVisible(false);
+    if (currentIndexRef.current < currentLengthNotLearnedRef.current) {
+      setCurrentIndex((previusIndex) => previusIndex + 1);
+      setSearchWords([]);
+      setTextInput("");
+      setInputVisible(false);
+      console.log("foi" + currentIndexRef.current);
+      console.log("length" + currentLengthNotLearnedRef.current);
+    } else {
+      setCurrentIndex(0);
+      setSearchWords([]);
+      setTextInput("");
+      setInputVisible(false);
+    }
   }
 
   function previousWord() {
-    setCurrentIndex((previusIndex) => previusIndex - 1);
-    setSearchWords([]);
-    setTextInput("");
-    setInputVisible(false);
+    if (currentIndexRef.current > 0) {
+      setCurrentIndex((previusIndex) => previusIndex - 1);
+      setSearchWords([]);
+      setTextInput("");
+      setInputVisible(false);
+    } else {
+      setSearchWords([]);
+      setTextInput("");
+      setInputVisible(false);
+    }
   }
 
   async function playSound(text) {
