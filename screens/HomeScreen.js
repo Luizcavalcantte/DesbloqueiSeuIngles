@@ -117,12 +117,15 @@ export default function HomeScreen() {
           //problema o current index é sempre zero aqui dentro dessa func
 
           nextWord();
+          hideItens();
         }
         if (dx > 0) {
           previousWord();
+          hideItens();
         }
       });
     } else {
+      hideItens();
       // Se o gesto não for suficientemente grande, animação para retornar o flashcard à posição original
       Animated.spring(pan, {
         toValue: { x: 0, y: 0 },
@@ -338,6 +341,7 @@ export default function HomeScreen() {
               style={styles.soundButton2}
               onPress={() => {
                 playSound(word.sentence);
+                Keyboard.dismiss;
               }}
             >
               <Icon name="volume-up" size={30} color="#fff" />
