@@ -97,25 +97,19 @@ export default function HomeScreen() {
   const pan = useRef(new Animated.ValueXY()).current;
 
   function handlePanResponderRelease(e, gestureState) {
-    const { dx } = gestureState; // Obtém a distância deslizada horizontalmente
-    const threshold = 100; // Limite para considerar o gesto como válido para mudar o flashcard
+    const { dx } = gestureState;
+    const threshold = 100;
 
-    // Se o gesto for suficientemente grande
     if (Math.abs(dx) > threshold) {
-      // Define o valor final do movimento do flashcard (fora da tela)
       const toValue = dx < 0 ? -500 : 500;
 
-      // Animação para mover o flashcard para fora da tela
       Animated.timing(pan, {
         toValue: { x: toValue, y: 0 },
-        duration: 300, // Duração da animação
-        useNativeDriver: true, // Utiliza o driver nativo para desempenho melhor
+        duration: 0,
+        useNativeDriver: true,
       }).start(() => {
-        pan.setValue({ x: 0, y: 0 }); // Reseta o valor para a posição original
-        // Muda o flashcard para o próximo ou anterior com base na direção do deslizar
+        pan.setValue({ x: 0, y: 0 });
         if (dx < 0) {
-          //problema o current index é sempre zero aqui dentro dessa func
-
           nextWord();
           hideItens();
         }
@@ -126,7 +120,7 @@ export default function HomeScreen() {
       });
     } else {
       hideItens();
-      // Se o gesto não for suficientemente grande, animação para retornar o flashcard à posição original
+
       Animated.spring(pan, {
         toValue: { x: 0, y: 0 },
         useNativeDriver: true,
@@ -134,14 +128,13 @@ export default function HomeScreen() {
     }
   }
 
-  // Configura o PanResponder para lidar com os gestos de deslizar
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true, // Habilita o PanResponder para todos os gestos
+      onStartShouldSetPanResponder: () => true,
       onPanResponderMove: Animated.event([null, { dx: pan.x, dy: new Animated.Value(0) }], {
-        useNativeDriver: false, // Utiliza o driver JS para animação de pan
+        useNativeDriver: false,
       }),
-      onPanResponderRelease: handlePanResponderRelease, // Lida com o término do gesto
+      onPanResponderRelease: handlePanResponderRelease,
     })
   ).current;
 
@@ -151,8 +144,6 @@ export default function HomeScreen() {
       setSearchWords([]);
       setTextInput("");
       setInputVisible(false);
-      console.log("foi" + currentIndexRef.current);
-      console.log("length" + currentLengthNotLearnedRef.current);
     } else {
       setCurrentIndex(0);
       setSearchWords([]);
@@ -287,14 +278,10 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView onPress={hideItens}>
+    <SafeAreaView onPress={hideItens} style={{ backgroundColor: "#444" }}>
       <Animated.View
-        style={[
-          styles.flashcard,
-          // Aplica a transformação de movimento no flashcard
-          { transform: [{ translateX: pan.x }, { translateY: 0 }] },
-        ]}
-        {...panResponder.panHandlers} // Aplica os manipuladores de gesto ao componente
+        style={[styles.flashcard, { transform: [{ translateX: pan.x }, { translateY: 0 }] }]}
+        {...panResponder.panHandlers}
       >
         <View style={styles.Container}>
           {inputVisible && (
@@ -461,8 +448,8 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 10,
     backgroundColor: "white",
-    elevation: 5, // Sombra para Android
-    shadowOffset: { width: 0, height: 2 }, // Sombra para iOS
+    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
